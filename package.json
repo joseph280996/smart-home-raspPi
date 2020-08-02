@@ -1,0 +1,45 @@
+{
+  "name": "temp-raspi-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --ext js --exec babel-node src/server.js"
+  },
+  "keywords": [
+    "temperature",
+    "humidity",
+    "smart-house",
+    "raspi"
+  ],
+  "author": "Tung Pham",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^3.23.3",
+    "lodash": "^4.17.19",
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
+    "node-dht-sensor": "^0.4.3",
+    "onoff": "^6.0.0",
+    "uuid": "^8.2.0",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.10.5",
+    "@babel/node": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  }
+}

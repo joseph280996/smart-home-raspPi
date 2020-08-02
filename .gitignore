@@ -1,0 +1,4 @@
+node_modules/
+credential.json
+data.json
+.env

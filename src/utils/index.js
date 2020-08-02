@@ -1,0 +1,1 @@
+import getSensorData from 'getSensor'
