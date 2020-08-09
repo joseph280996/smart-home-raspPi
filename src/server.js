@@ -11,10 +11,11 @@ import APISocket from './ws/APISocket'
 import getSensorData from './utils/getSensorData'
 import moment from 'moment'
 import 'moment-timezone'
+import events from 'events'
 
 dotenv.config()
 
-
+const eventEmitter = new events.EventEmitter()
 const port = process.env.PORT || 3000
 
 const app = express()
@@ -39,7 +40,9 @@ let credential, ws
     credential = createCredential()
     try {
       const response = await axios.post(`${process.env.SERVER_IP}/home`, {uuid: credential.deviceId, zones})
-      zones = response.data.home.zones
+      zones = response.data.home.zones.map((zone, idx) => {
+        return {...zone, ...zones[idx]}
+      })
     } catch (err) {
       console.error(err.message)
     }
@@ -52,7 +55,12 @@ app.listen(port, () => {
 const interval = setInterval(async () => {
   try {
     if (!ws && credential) {
-      ws = new APISocket(`${process.env.WS_IP_ADDRESS}/?home=${credential.deviceId}`)
+      ws = new APISocket(
+        `${process.env.WS_IP_ADDRESS}/?home=${credential.deviceId}`,
+        fan,
+        heat,
+        damper,
+        eventEmitter)
     }
     const sensorData = await Promise.all(
       zones.map(async zone => {
@@ -61,21 +69,40 @@ const interval = setInterval(async () => {
       })
     )
     const timeStamp = moment.tz('America/New_York').unix()
-    // if (sensorData.temperature < zones[temperature) {
-    //   damper.writeSync(0) // 0 for shutdown, 1 for run
-    //   fan.writeSync(-1) // 1 for shutdown, 0 for run
-    //   heat.writeSync(-1) // 1 for shutdown, 0 for run
-    // } else {
-    //   fan.writeSync(0) // 1 for shutdown, 0 for run
-    //   heat.writeSync(0) // 1 for shutdown, 0 for run
-    //   damper.writeSync(-1) // 0 for shutdown, 1 for run
-    // }
+    sensorData.forEach((sensorDatum, idx) => {
+      if (sensorDatum.temperature < zones[idx].temperature) {
+        damper.writeSync(0) // 0 for shutdown, 1 for run
+        fan.writeSync(-1) // 1 for shutdown, 0 for run
+        heat.writeSync(-1) // 1 for shutdown, 0 for run
+      } else {
+        fan.writeSync(0) // 1 for shutdown, 0 for run
+        heat.writeSync(0) // 1 for shutdown, 0 for run
+        damper.writeSync(-1) // 0 for shutdown, 1 for run
+      }
+    })
     console.log({timeStamp, sensorData})
     ws.send(`sensor:${JSON.stringify({timeStamp, sensorData})}`)
   } catch (err) {
-    throw new Error(err)
+    console.error(err)
   }
-}, 1000 * 5)
+}, 1000 * 1)
+
+eventEmitter.on('newData', () => {
+  if (ws) {
+    console.log(`getMessage: ${ws.getMessage()}`)
+    const newTemp = JSON.parse(ws.getMessage())
+    const getZone = zones.filter(zone => {
+      return zone.name === newTemp.zone
+    })
+    if (getZone.length === 0) {
+      console.error("Zone Not Exist")
+    }
+    const zone = getZone[0]
+    zone.temperature = newTemp.temperature
+    console.log(zones)
+  }
+})
+
 function exitHandler(options, exitCode) {
   if (ws) ws.close(1000, "End Connection")
   if (interval) clearInterval(interval)
