@@ -1,7 +1,7 @@
 import WebSocket from 'ws'
 
 class APISocket {
-  constructor(link, fan, heat, damper, eventEmitter) {
+  constructor(link, eventEmitter) {
     const newWs = new WebSocket(link)
     newWs.on('open', () => {
       console.log(`WS Connection to ${process.env.WS_IP_ADDRESS} established`)
