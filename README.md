@@ -1,6 +1,6 @@
 This is the Raspberry Pi application for Smart Home system.</br>
-NodeJS server application: [https://github.com/joseph280996/smart-home-server]</br>
-Web application: [https://github.com/joseph280996/smart-home-ui]</br>
+NodeJS server application: https://github.com/joseph280996/smart-home-server</br>
+Web application: https://github.com/joseph280996/smart-home-ui</br>
 
 ## Commands to run
 
