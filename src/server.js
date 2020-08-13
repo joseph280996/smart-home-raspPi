@@ -57,9 +57,6 @@ const interval = setInterval(async () => {
     if (!ws && credential) {
       ws = new APISocket(
         `${process.env.WS_IP_ADDRESS}/?home=${credential.deviceId}`,
-        fan,
-        heat,
-        damper,
         eventEmitter)
     }
     const sensorData = await Promise.all(
@@ -69,17 +66,20 @@ const interval = setInterval(async () => {
       })
     )
     const timeStamp = moment.tz('America/New_York').unix()
+    let zoneNeedHeat = 0
     sensorData.forEach((sensorDatum, idx) => {
       if (sensorDatum.temperature < zones[idx].temperature) {
         damper.writeSync(0) // 0 for shutdown, 1 for run
-        fan.writeSync(-1) // 1 for shutdown, 0 for run
-        heat.writeSync(-1) // 1 for shutdown, 0 for run
+        zoneNeedHeat += 1
       } else {
-        fan.writeSync(0) // 1 for shutdown, 0 for run
-        heat.writeSync(0) // 1 for shutdown, 0 for run
+        zoneNeedHeat -= 1
         damper.writeSync(-1) // 0 for shutdown, 1 for run
       }
     })
+    if (zoneNeedHeat === 0) {
+      fan.writeSync(0) // 1 for shutdown, 0 for run
+      heat.writeSync(0) // 1 for shutdown, 0 for run
+    }
     console.log({timeStamp, sensorData})
     ws.send(`sensor:${JSON.stringify({timeStamp, sensorData})}`)
   } catch (err) {
